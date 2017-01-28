@@ -57,8 +57,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandLineSplitterTests.cs" />
+    <Compile Include="StandardCommandLineParserTests.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="CustomCommandLineParserTests.cs" />
     <Compile Include="Win32CommandLineToArgvW.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -6,6 +6,20 @@ namespace Nerven.CommandLineParser.Tests
 {
     public static class TestHelper
     {
+        public static void TestCommandLineParser(ICommandLineParser parser, CommandLineSplitter splitter, string line, CommandLineItem[] expectedItems)
+        {
+            var _actualItems = parser.ParseCommandLine(splitter.ParseString(line));
+
+            for (var _i = 0; _i < expectedItems.Length && _i < _actualItems.Count; _i++)
+            {
+                Assert.Equal(expectedItems[_i].ToString(), _actualItems[_i].ToString(), StringComparer.Ordinal);
+                Assert.Equal(expectedItems[_i], _actualItems[_i]);
+            }
+
+            Assert.Equal(expectedItems.Length, _actualItems.Count);
+            Assert.True(expectedItems.SequenceEqual(_actualItems));
+        }
+
         public static void CommandLineIsSplittedLikeWin32Does(string line, CommandLineSplitter parser)
         {
             var _commandLine = parser.ParseString(line);

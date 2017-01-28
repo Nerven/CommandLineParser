@@ -40,9 +40,14 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommandLineItemType.cs" />
+    <Compile Include="CommandLineItem.cs" />
     <Compile Include="CommandLinePart.cs" />
     <Compile Include="CommandLine.cs" />
     <Compile Include="CommandLineSplitter.cs" />
+    <Compile Include="StandardCommandLineParser.cs" />
+    <Compile Include="CustomCommandLineParser.cs" />
+    <Compile Include="ICommandLineParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
