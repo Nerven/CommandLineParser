@@ -69,7 +69,8 @@ namespace Nerven.CommandLineParser.Tests
         [Fact]
         public void ReadmeSampleIsCorrect()
         {
-            var _expected = @"var s = @""ffmpeg -i source.webm -vf """"setpts=2.0 * PTS"""" target.webm"";
+            var _expected = @"
+var s = @""ffmpeg -i source.webm -vf """"setpts=2.0 * PTS"""" target.webm"";
 var commandLine = CommandLineParser.Default.ParseString(s);
 var args = commandLine.GetArgs(); // -> [""ffmpeg"", ""-i"", ""source.webm"", ""-vf"", ""setpts=2.0 * PTS"", ""target.webm""]";
 
@@ -79,9 +80,10 @@ var args = commandLine.GetArgs(); // -> [""ffmpeg"", ""-i"", ""source.webm"", ""
             var args = commandLine.GetArgs();
             //// ReSharper restore InconsistentNaming
 
-            var _actual = $@"var s = @""{s.Replace("\"", "\"\"")}"";
-var commandLine = CommandLineParser.Default.ParseString(s);
-var args = commandLine.GetArgs(); // -> [{string.Join(", ", args.Select(_arg => $"\"{_arg}\""))}]";
+            var _actual = $@"
+var {nameof(s)} = @""{s.Replace("\"", "\"\"")}"";
+var {nameof(commandLine)} = {nameof(CommandLineParser)}.{nameof(CommandLineParser.Default)}.{nameof(CommandLineParser.ParseString)}({nameof(s)});
+var {nameof(args)} = {nameof(commandLine)}.{nameof(CommandLine.GetArgs)}(); // -> [{string.Join(", ", args.Select(_arg => $"\"{_arg}\""))}]";
 
             Assert.Equal(_expected, _actual);
         }
