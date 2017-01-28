@@ -4,34 +4,34 @@ using Xunit;
 
 namespace Nerven.CommandLineParser.Tests
 {
-    public class CommandLineParserTests
+    public class CommandLineSplitterTests
     {
         private const string _ComplicatedCommandLineOriginal = "cmd\t" + @"/p1 /p2 --param3 -p4 ""param no 5"" bin\Param6.exe ""C:\Program Files\Param7\"""" ""I'm param 8'' and I'm still"" ""--AND-P9"" 'P a r a m ""10""' \'p11 p12\ ""Hi I'm""13"" cats …""!:> 14 \""p15";
         private const string _ComplicatedCommandLineParsed = @"cmd /p1 /p2 --param3 -p4 ""param no 5"" bin\Param6.exe ""C:\Program Files\Param7"""" ""I'm param 8'' and I'm still"" --AND-P9 ""P a r a m ""10"""" 'p11 p12\ ""Hi I'm13 cats …!:>"" 14 ""p15";
         private static readonly CommandLinePart[] _ComplicatedCommandLineParsedParts =
                 {
-                    new CommandLinePart("cmd", "cmd"),
-                    new CommandLinePart("/p1", "/p1"),
-                    new CommandLinePart("/p2", "/p2"),
-                    new CommandLinePart("--param3", "--param3"),
-                    new CommandLinePart("-p4", "-p4"),
-                    new CommandLinePart("\"param no 5\"", "param no 5"),
-                    new CommandLinePart("bin\\Param6.exe", "bin\\Param6.exe"),
-                    new CommandLinePart("\"C:\\Program Files\\Param7\\\"\"", "C:\\Program Files\\Param7\""),
-                    new CommandLinePart("\"I'm param 8'' and I'm still\"", "I'm param 8'' and I'm still"),
-                    new CommandLinePart("\"--AND-P9\"", "--AND-P9"),
-                    new CommandLinePart("'P a r a m \"10\"'", "P a r a m \"10\""),
-                    new CommandLinePart("\\'p11", "'p11"),
-                    new CommandLinePart("p12\\", "p12\\"),
-                    new CommandLinePart("\"Hi I'm\"13\" cats …\"!:>", "Hi I'm13 cats …!:>"),
-                    new CommandLinePart("14", "14"),
-                    new CommandLinePart("\\\"p15", "\"p15"),
+                    new CommandLinePart(0, 0 ,"cmd", "cmd"),
+                    new CommandLinePart(1, 4, "/p1", "/p1"),
+                    new CommandLinePart(2, 8, "/p2", "/p2"),
+                    new CommandLinePart(3, 12, "--param3", "--param3"),
+                    new CommandLinePart(4, 21, "-p4", "-p4"),
+                    new CommandLinePart(5, 25, "\"param no 5\"", "param no 5"),
+                    new CommandLinePart(6, 38, "bin\\Param6.exe", "bin\\Param6.exe"),
+                    new CommandLinePart(7, 53, "\"C:\\Program Files\\Param7\\\"\"", "C:\\Program Files\\Param7\""),
+                    new CommandLinePart(8, 81, "\"I'm param 8'' and I'm still\"", "I'm param 8'' and I'm still"),
+                    new CommandLinePart(9, 111, "\"--AND-P9\"", "--AND-P9"),
+                    new CommandLinePart(10, 122, "'P a r a m \"10\"'", "P a r a m \"10\""),
+                    new CommandLinePart(11, 139, "\\'p11", "'p11"),
+                    new CommandLinePart(12, 145, "p12\\", "p12\\"),
+                    new CommandLinePart(13, 150, "\"Hi I'm\"13\" cats …\"!:>", "Hi I'm13 cats …!:>"),
+                    new CommandLinePart(14, 173, "14", "14"),
+                    new CommandLinePart(15, 176, "\\\"p15", "\"p15"),
                 };
         
         [Fact]
         public void ComplicatedCommandLineMakesCorrectCommandLineValue()
         {
-            var _parser = CommandLineParser.Default;
+            var _parser = CommandLineSplitter.Default;
             var _commandLine = _parser.ParseString(_ComplicatedCommandLineOriginal);
             Assert.Equal(_ComplicatedCommandLineParsed, _commandLine.Value);
             Assert.False(_commandLine.Equals(_ComplicatedCommandLineOriginal));
@@ -41,7 +41,7 @@ namespace Nerven.CommandLineParser.Tests
         [Fact]
         public void ComplicatedCommandLineMakesCorrectCommandLineParts()
         {
-            var _parser = CommandLineParser.Default;
+            var _parser = CommandLineSplitter.Default;
             var _commandLine = _parser.ParseString(_ComplicatedCommandLineOriginal);
             var _expectedParts = _ComplicatedCommandLineParsedParts;
 
@@ -57,13 +57,17 @@ namespace Nerven.CommandLineParser.Tests
                 Assert.Equal(_expectedParts[_i].Value, _commandLine.Parts[_i].Value);
                 Assert.Equal(_expectedParts[_i].Original, _commandLine.Parts[_i].Original);
                 Assert.Equal(_expectedParts[_i], _commandLine.Parts[_i]);
+                Assert.Equal(_i, _expectedParts[_i].Index);
+                Assert.Equal(_i, _commandLine.Parts[_i].Index);
+                Assert.Equal(_ComplicatedCommandLineOriginal.IndexOf(_commandLine.Parts[_i].Original, StringComparison.Ordinal), _commandLine.Parts[_i].OriginalStartIndex);
+                Assert.Equal(_expectedParts[_i].OriginalStartIndex, _commandLine.Parts[_i].OriginalStartIndex);
             }
         }
 
         [Fact]
         public void ComplicatedCommandLineIsSplittedLikeWin32DoesInWindowsCompatibilityMode()
         {
-            _CommandLineIsSplittedLikeWin32Does(_ComplicatedCommandLineOriginal, CommandLineParser.WindowsCompatible);
+            TestHelper.CommandLineIsSplittedLikeWin32Does(_ComplicatedCommandLineOriginal, CommandLineSplitter.WindowsCompatible);
         }
 
         [Fact]
@@ -71,18 +75,18 @@ namespace Nerven.CommandLineParser.Tests
         {
             var _expected = @"
 var s = @""ffmpeg -i source.webm -vf """"setpts=2.0 * PTS"""" target.webm"";
-var commandLine = CommandLineParser.Default.ParseString(s);
+var commandLine = CommandLineSplitter.Default.ParseString(s);
 var args = commandLine.GetArgs(); // -> [""ffmpeg"", ""-i"", ""source.webm"", ""-vf"", ""setpts=2.0 * PTS"", ""target.webm""]";
 
             //// ReSharper disable InconsistentNaming
             var s = @"ffmpeg -i source.webm -vf ""setpts=2.0 * PTS"" target.webm";
-            var commandLine = CommandLineParser.Default.ParseString(s);
+            var commandLine = CommandLineSplitter.Default.ParseString(s);
             var args = commandLine.GetArgs();
             //// ReSharper restore InconsistentNaming
 
             var _actual = $@"
 var {nameof(s)} = @""{s.Replace("\"", "\"\"")}"";
-var {nameof(commandLine)} = {nameof(CommandLineParser)}.{nameof(CommandLineParser.Default)}.{nameof(CommandLineParser.ParseString)}({nameof(s)});
+var {nameof(commandLine)} = {nameof(CommandLineSplitter)}.{nameof(CommandLineSplitter.Default)}.{nameof(CommandLineSplitter.ParseString)}({nameof(s)});
 var {nameof(args)} = {nameof(commandLine)}.{nameof(CommandLine.GetArgs)}(); // -> [{string.Join(", ", args.Select(_arg => $"\"{_arg}\""))}]";
 
             Assert.Equal(_expected, _actual);
@@ -97,32 +101,15 @@ var {nameof(args)} = {nameof(commandLine)}.{nameof(CommandLine.GetArgs)}(); // -
         ////[InlineData(@"winscp.com /command ""open sftp://martin@example.com/ -hostkey=""""ssh-rsa 2048 xx:xx:xx..."""""" ""exit""")]
         public void TypicalCommandLinesAreHandledLikeWindowsInBothDefaultModeAndCompatibilityMode(string line)
         {
-            _CommandLineIsSplittedLikeWin32Does(line, CommandLineParser.Default);
-            _CommandLineIsSplittedLikeWin32Does(line, CommandLineParser.WindowsCompatible);
+            TestHelper.CommandLineIsSplittedLikeWin32Does(line, CommandLineSplitter.Default);
+            TestHelper.CommandLineIsSplittedLikeWin32Does(line, CommandLineSplitter.WindowsCompatible);
         }
 
         [Theory]
         [InlineData(@"cvlc -vv --live-caching 2000 --decklink-audio-connection embedded --decklink-aspect-ratio 16:9 --decklink-mode hp50 decklink:// --sout-x264-preset fast --sout-x264-tune film --sout-transcode-threads 24 --no-sout-x264-interlaced --sout-x264-keyint 50 --sout-x264-lookahead 100 --sout-x264-vbv-maxrate 4000 --sout-x264-vbv-bufsize 4000 --sout '#duplicate{dst=""transcode{vcodec=h264,vb=6000,acodec=mp4a,aenc=fdkaac,ab=256}:std{access=udp,mux=ts,dst=192.168.1.2:4013}"", dst=""std{access=udp,mux=ts,dst=192.168.1.2:4014}""}'")]
         public void ApparentlyLessTypicalCommandLinesAreHandledLikeWindowsInCompatibilityMode(string line)
         {
-            _CommandLineIsSplittedLikeWin32Does(line, CommandLineParser.WindowsCompatible);
-        }
-
-        private static void _CommandLineIsSplittedLikeWin32Does(string line, CommandLineParser parser)
-        {
-            var _commandLine = parser.ParseString(line);
-            var _actualArgs = _commandLine.GetArgs();
-            var _expectedArgs = Win32CommandLineToArgvW.Split(line);
-
-            Assert.True(_commandLine.Equals(_expectedArgs));
-            Assert.False(_commandLine.Equals(_expectedArgs.Concat(new [] { string.Empty }).ToArray()));
-            Assert.Equal(string.Join(Environment.NewLine, _expectedArgs), string.Join(Environment.NewLine, _actualArgs));
-            Assert.Equal(_expectedArgs.Length, _commandLine.Parts.Count);
-            for (var _i = 0; _i < _expectedArgs.Length; _i++)
-            {
-                Assert.Equal(_expectedArgs[_i], _commandLine.Parts[_i].Value);
-                Assert.True(_commandLine.Parts[_i].Equals(_expectedArgs[_i]));
-            }
+            TestHelper.CommandLineIsSplittedLikeWin32Does(line, CommandLineSplitter.WindowsCompatible);
         }
     }
 }

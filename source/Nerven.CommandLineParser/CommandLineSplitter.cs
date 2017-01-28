@@ -5,16 +5,16 @@ using System.Linq;
 //// ReSharper disable UnusedMember.Global
 namespace Nerven.CommandLineParser
 {
-    public sealed class CommandLineParser
+    public sealed class CommandLineSplitter
     {
-        private static readonly CommandLineParser _Default = new CommandLineParser(
+        private static readonly CommandLineSplitter _Default = new CommandLineSplitter(
             ' ',
             '"',
             new[] { ' ', '\t' },
             new[] { '"', '\'' },
             new[] { '\\' });
 
-        private static readonly CommandLineParser _WindowsCompatible = new CommandLineParser(
+        private static readonly CommandLineSplitter _WindowsCompatible = new CommandLineSplitter(
             ' ',
             '"',
             new[] { ' ', '\t' },
@@ -27,7 +27,7 @@ namespace Nerven.CommandLineParser
         private readonly char[] _QuoteCharacters;
         private readonly char[] _EscapeCharacters;
 
-        private CommandLineParser(
+        private CommandLineSplitter(
             char defaultSeparatorCharacter,
             char defaultQuoteCharacter,
             char[] separatorCharacters,
@@ -41,18 +41,18 @@ namespace Nerven.CommandLineParser
             _EscapeCharacters = escapeCharacters;
         }
 
-        public static CommandLineParser Default => _Default;
+        public static CommandLineSplitter Default => _Default;
 
-        public static CommandLineParser WindowsCompatible => _WindowsCompatible;
+        public static CommandLineSplitter WindowsCompatible => _WindowsCompatible;
 
-        public static CommandLineParser Create(
+        public static CommandLineSplitter Create(
             char defaultSeparatorCharacter,
             char defaultQuoteCharacter,
             IEnumerable<char> separatorCharacters,
             IEnumerable<char> quoteCharacters,
             IEnumerable<char> escapeCharacters)
         {
-            var _parser = new CommandLineParser(
+            var _parser = new CommandLineSplitter(
                 defaultSeparatorCharacter,
                 defaultQuoteCharacter,
                 separatorCharacters.ToArray(),
@@ -193,7 +193,9 @@ namespace Nerven.CommandLineParser
                 var _bufferLength = _partWindow.Item4 - _bufferStart;
                 var _original = s.Substring(_start, _length);
                 var _value = new string(_outputBuffer, _bufferStart, _bufferLength);
-                _parts[_partIndex++] = new CommandLinePart(
+                _parts[_partIndex] = new CommandLinePart(
+                    _partIndex++,
+                    _start,
                     _original,
                     _value);
             }
@@ -243,7 +245,7 @@ namespace Nerven.CommandLineParser
 
             public List<char> EscapeCharacters { get; set; }
 
-            public CommandLineParser Build()
+            public CommandLineSplitter Build()
             {
                 return Create(
                     DefaultSeparatorCharacter,

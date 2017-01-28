@@ -42,7 +42,7 @@
   <ItemGroup>
     <Compile Include="CommandLinePart.cs" />
     <Compile Include="CommandLine.cs" />
-    <Compile Include="CommandLineParser.cs" />
+    <Compile Include="CommandLineSplitter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
