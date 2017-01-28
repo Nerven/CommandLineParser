@@ -6,9 +6,9 @@ namespace Nerven.CommandLineParser.Tests
 {
     public class CommandLineParserTests
     {
-        private const string _TestLineAOriginal = "cmd\t" + @"/p1 /p2 --param3 -p4 ""param no 5"" bin\Param6.exe ""C:\Program Files\Param7\"""" ""I'm param 8'' and I'm still"" ""--AND-P9"" 'P a r a m ""10""' \'p11 p12\ ""Hi I'm""13"" cats …""!:> 14 \""p15";
-        private const string _TestLineAParsed = @"cmd /p1 /p2 --param3 -p4 ""param no 5"" bin\Param6.exe ""C:\Program Files\Param7"""" ""I'm param 8'' and I'm still"" --AND-P9 ""P a r a m ""10"""" 'p11 p12\ ""Hi I'm13 cats …!:>"" 14 ""p15";
-        private static readonly CommandLinePart[] _TestLineAParsedParts =
+        private const string _ComplicatedCommandLineOriginal = "cmd\t" + @"/p1 /p2 --param3 -p4 ""param no 5"" bin\Param6.exe ""C:\Program Files\Param7\"""" ""I'm param 8'' and I'm still"" ""--AND-P9"" 'P a r a m ""10""' \'p11 p12\ ""Hi I'm""13"" cats …""!:> 14 \""p15";
+        private const string _ComplicatedCommandLineParsed = @"cmd /p1 /p2 --param3 -p4 ""param no 5"" bin\Param6.exe ""C:\Program Files\Param7"""" ""I'm param 8'' and I'm still"" --AND-P9 ""P a r a m ""10"""" 'p11 p12\ ""Hi I'm13 cats …!:>"" 14 ""p15";
+        private static readonly CommandLinePart[] _ComplicatedCommandLineParsedParts =
                 {
                     new CommandLinePart("cmd", "cmd"),
                     new CommandLinePart("/p1", "/p1"),
@@ -27,21 +27,23 @@ namespace Nerven.CommandLineParser.Tests
                     new CommandLinePart("14", "14"),
                     new CommandLinePart("\\\"p15", "\"p15"),
                 };
-
+        
         [Fact]
         public void ComplicatedCommandLineMakesCorrectCommandLineValue()
         {
             var _parser = CommandLineParser.Default;
-            var _commandLine = _parser.ParseString(_TestLineAOriginal);
-            Assert.Equal(_TestLineAParsed, _commandLine.Value);
+            var _commandLine = _parser.ParseString(_ComplicatedCommandLineOriginal);
+            Assert.Equal(_ComplicatedCommandLineParsed, _commandLine.Value);
+            Assert.False(_commandLine.Equals(_ComplicatedCommandLineOriginal));
+            Assert.True(_commandLine.Equals(_ComplicatedCommandLineParsed));
         }
 
         [Fact]
         public void ComplicatedCommandLineMakesCorrectCommandLineParts()
         {
             var _parser = CommandLineParser.Default;
-            var _commandLine = _parser.ParseString(_TestLineAOriginal);
-            var _expectedParts = _TestLineAParsedParts;
+            var _commandLine = _parser.ParseString(_ComplicatedCommandLineOriginal);
+            var _expectedParts = _ComplicatedCommandLineParsedParts;
 
             Assert.Equal(
                 string.Join(Environment.NewLine, _expectedParts.Select(_part => _part.Value)),
@@ -54,13 +56,14 @@ namespace Nerven.CommandLineParser.Tests
             {
                 Assert.Equal(_expectedParts[_i].Value, _commandLine.Parts[_i].Value);
                 Assert.Equal(_expectedParts[_i].Original, _commandLine.Parts[_i].Original);
+                Assert.Equal(_expectedParts[_i], _commandLine.Parts[_i]);
             }
         }
 
         [Fact]
         public void ComplicatedCommandLineIsSplittedLikeWin32DoesInWindowsCompatibilityMode()
         {
-            _CommandLineIsSplittedLikeWin32Does(_TestLineAOriginal, CommandLineParser.WindowsCompatible);
+            _CommandLineIsSplittedLikeWin32Does(_ComplicatedCommandLineOriginal, CommandLineParser.WindowsCompatible);
         }
 
         [Fact]
@@ -109,11 +112,14 @@ var args = commandLine.GetArgs(); // -> [{string.Join(", ", args.Select(_arg => 
             var _actualArgs = _commandLine.GetArgs();
             var _expectedArgs = Win32CommandLineToArgvW.Split(line);
 
+            Assert.True(_commandLine.Equals(_expectedArgs));
+            Assert.False(_commandLine.Equals(_expectedArgs.Concat(new [] { string.Empty }).ToArray()));
             Assert.Equal(string.Join(Environment.NewLine, _expectedArgs), string.Join(Environment.NewLine, _actualArgs));
             Assert.Equal(_expectedArgs.Length, _commandLine.Parts.Count);
             for (var _i = 0; _i < _expectedArgs.Length; _i++)
             {
                 Assert.Equal(_expectedArgs[_i], _commandLine.Parts[_i].Value);
+                Assert.True(_commandLine.Parts[_i].Equals(_expectedArgs[_i]));
             }
         }
     }

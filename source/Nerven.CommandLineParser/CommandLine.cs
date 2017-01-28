@@ -5,7 +5,7 @@ using System.Linq;
 //// ReSharper disable UnusedAutoPropertyAccessor.Global
 namespace Nerven.CommandLineParser
 {
-    public struct CommandLine : IEquatable<CommandLine>, IEquatable<string>
+    public struct CommandLine : IEquatable<CommandLine>, IEquatable<string>, IEquatable<string[]>
     {
         internal CommandLine(
             string original,
@@ -27,7 +27,9 @@ namespace Nerven.CommandLineParser
 
         public bool Equals(CommandLine other)
         {
-            return string.Equals(Value, other.Value, StringComparison.Ordinal);
+            return Parts == null
+                ? other.Parts == null
+                : other.Parts != null && Parts.SequenceEqual(other.Parts);
         }
 
         public bool Equals(string other)
@@ -35,17 +37,40 @@ namespace Nerven.CommandLineParser
             return string.Equals(Value, other, StringComparison.Ordinal);
         }
 
+        public bool Equals(string[] other)
+        {
+            if (Parts == null)
+            {
+                return other == null;
+            }
+
+            if (other == null || other.Length != Parts.Count)
+            {
+                return false;
+            }
+
+            for (var _i = 0; _i < other.Length; _i++)
+            {
+                if (!Parts[_i].Equals(other[_i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public override bool Equals(object obj)
         {
+            if (obj is CommandLine)
+            {
+                return Equals((CommandLine)obj);
+            }
+
             var _string = obj as string;
             if (_string != null)
             {
                 return Equals(_string);
-            }
-
-            if (obj is CommandLine)
-            {
-                return Equals((CommandLine)obj);
             }
             
             return false;

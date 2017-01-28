@@ -3,7 +3,7 @@
 //// ReSharper disable UnusedAutoPropertyAccessor.Global
 namespace Nerven.CommandLineParser
 {
-    public struct CommandLinePart : IEquatable<CommandLinePart>
+    public struct CommandLinePart : IEquatable<CommandLinePart>, IEquatable<string>
     {
         internal CommandLinePart(string original, string value)
         {
@@ -20,11 +20,22 @@ namespace Nerven.CommandLineParser
             return string.Equals(Value, other.Value, StringComparison.Ordinal);
         }
 
+        public bool Equals(string other)
+        {
+            return string.Equals(Value, other, StringComparison.Ordinal);
+        }
+
         public override bool Equals(object obj)
         {
             if (obj is CommandLinePart)
             {
                 return Equals((CommandLinePart)obj);
+            }
+
+            var _string = obj as string;
+            if (_string != null)
+            {
+                return Equals(_string);
             }
 
             return false;
