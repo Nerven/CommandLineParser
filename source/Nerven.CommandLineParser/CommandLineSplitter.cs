@@ -9,6 +9,7 @@ namespace Nerven.CommandLineParser
     {
         private readonly char _DefaultSeparatorCharacter;
         private readonly char _DefaultQuoteCharacter;
+        private readonly char _DefaultEscapeCharacter;
         private readonly char[] _SeparatorCharacters;
         private readonly char[] _QuoteCharacters;
         private readonly char[] _EscapeCharacters;
@@ -16,12 +17,14 @@ namespace Nerven.CommandLineParser
         private CommandLineSplitter(
             char defaultSeparatorCharacter,
             char defaultQuoteCharacter,
+            char defaultEscapeCharacter,
             char[] separatorCharacters,
             char[] quoteCharacters,
             char[] escapeCharacters)
         {
             _DefaultSeparatorCharacter = defaultSeparatorCharacter;
             _DefaultQuoteCharacter = defaultQuoteCharacter;
+            _DefaultEscapeCharacter = defaultEscapeCharacter;
             _SeparatorCharacters = separatorCharacters;
             _QuoteCharacters = quoteCharacters;
             _EscapeCharacters = escapeCharacters;
@@ -30,6 +33,7 @@ namespace Nerven.CommandLineParser
         public static CommandLineSplitter Default { get; } = new CommandLineSplitter(
             ' ',
             '"',
+            '\\',
             new[] { ' ', '\t' },
             new[] { '"', '\'' },
             new[] { '\\' });
@@ -37,6 +41,7 @@ namespace Nerven.CommandLineParser
         public static CommandLineSplitter WindowsCompatible { get; } = new CommandLineSplitter(
             ' ',
             '"',
+            '\\',
             new[] { ' ', '\t' },
             new[] { '"' },
             new[] { '\\' });
@@ -44,6 +49,7 @@ namespace Nerven.CommandLineParser
         public static CommandLineSplitter Create(
             char defaultSeparatorCharacter,
             char defaultQuoteCharacter,
+            char defaultEscapeCharacter,
             IEnumerable<char> separatorCharacters,
             IEnumerable<char> quoteCharacters,
             IEnumerable<char> escapeCharacters)
@@ -51,6 +57,7 @@ namespace Nerven.CommandLineParser
             var _parser = new CommandLineSplitter(
                 defaultSeparatorCharacter,
                 defaultQuoteCharacter,
+                defaultEscapeCharacter,
                 separatorCharacters.ToArray(),
                 quoteCharacters.ToArray(),
                 escapeCharacters.ToArray());
@@ -94,6 +101,7 @@ namespace Nerven.CommandLineParser
             var _partBufferStart = default(int?);
             var _quoteChar = default(char?);
             var _escapeChar = default(char?);
+            var _escapedValueBuffer = new char[s.Length];
 
             for (var _i = 0; _i < s.Length; _i++)
             {
@@ -189,20 +197,53 @@ namespace Nerven.CommandLineParser
                 var _bufferLength = _partWindow.Item4 - _bufferStart;
                 var _original = s.Substring(_start, _length);
                 var _value = new string(_outputBuffer, _bufferStart, _bufferLength);
+
+                var _escapedValue = _GetEscapedValue(_value, _escapedValueBuffer);
+
                 _parts[_partIndex] = new CommandLinePart(
                     _partIndex++,
                     _start,
                     _original,
-                    _value);
+                    _value,
+                    _escapedValue);
+            }
+            
+            return new CommandLine(
+                s,
+                string.Join(_DefaultSeparatorCharacter.ToString(), _parts.Select(_part => _part.EscapedValue)), 
+                _parts);
+        }
+
+        private string _GetEscapedValue(string value, char[] escapedValueBuffer)
+        {
+            var _escapedValueBufferIndex = 0;
+            var _containsSeparator = false;
+            foreach (var _partChar in value)
+            {
+                if (_IsSeparatorChar(_partChar))
+                {
+                    _containsSeparator = true;
+                    break;
+                }
             }
 
-            var _line = string.Join(
-                _DefaultSeparatorCharacter.ToString(),
-                _parts
-                    .Select(_part => _part.Value.ToCharArray().Any(_IsSeparatorChar)
-                        ? string.Concat(_DefaultQuoteCharacter, _part.Value, _DefaultQuoteCharacter)
-                        : _part.Value));
-            return new CommandLine(s, _line, _parts);
+            if (_containsSeparator)
+                escapedValueBuffer[_escapedValueBufferIndex++] = _DefaultQuoteCharacter;
+
+            foreach (var _partChar in value)
+            {
+                if (_containsSeparator ? _partChar == _DefaultQuoteCharacter : _IsQuoteChar(_partChar))
+                {
+                    escapedValueBuffer[_escapedValueBufferIndex++] = _DefaultEscapeCharacter;
+                }
+
+                escapedValueBuffer[_escapedValueBufferIndex++] = _partChar;
+            }
+
+            if (_containsSeparator)
+                escapedValueBuffer[_escapedValueBufferIndex++] = _DefaultQuoteCharacter;
+
+            return new string(escapedValueBuffer, 0, _escapedValueBufferIndex);
         }
 
         private bool _IsSeparatorChar(char c)
@@ -226,6 +267,7 @@ namespace Nerven.CommandLineParser
             {
                 DefaultSeparatorCharacter = Default._DefaultSeparatorCharacter;
                 DefaultQuoteCharacter = Default._DefaultQuoteCharacter;
+                DefaultEscapeCharacter = Default._DefaultEscapeCharacter;
                 SeparatorCharacters = new List<char>();
                 QuoteCharacters = new List<char>();
                 EscapeCharacters = new List<char>();
@@ -234,6 +276,8 @@ namespace Nerven.CommandLineParser
             public char DefaultSeparatorCharacter { get; set; }
 
             public char DefaultQuoteCharacter { get; set; }
+
+            public char DefaultEscapeCharacter { get; set; }
 
             public List<char> SeparatorCharacters { get; set; }
 
@@ -246,6 +290,7 @@ namespace Nerven.CommandLineParser
                 return Create(
                     DefaultSeparatorCharacter,
                     DefaultQuoteCharacter,
+                    DefaultEscapeCharacter,
                     SeparatorCharacters?.Count > 0 ? SeparatorCharacters : Default._SeparatorCharacters.ToList(),
                     QuoteCharacters?.Count > 0 ? QuoteCharacters : Default._QuoteCharacters.ToList(),
                     EscapeCharacters?.Count > 0 ? EscapeCharacters : Default._EscapeCharacters.ToList());

@@ -5,12 +5,13 @@ namespace Nerven.CommandLineParser
 {
     public struct CommandLinePart : IEquatable<CommandLinePart>, IEquatable<string>
     {
-        internal CommandLinePart(int index, int originalStartIndex, string original, string value)
+        internal CommandLinePart(int index, int originalStartIndex, string original, string value, string escapedValue)
         {
             Index = index;
             OriginalStartIndex = originalStartIndex;
             Original = original;
             Value = value;
+            EscapedValue = escapedValue;
         }
 
         public int Index { get; }
@@ -20,6 +21,8 @@ namespace Nerven.CommandLineParser
         public string Original { get; }
 
         public string Value { get; }
+
+        public string EscapedValue { get; }
 
         public bool Equals(CommandLinePart other)
         {

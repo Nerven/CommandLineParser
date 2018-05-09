@@ -7,25 +7,25 @@ namespace Nerven.CommandLineParser.Tests
     public class CommandLineSplitterTests
     {
         private const string _ComplicatedCommandLineOriginal = "cmd\t" + @"/p1 /p2 --param3 -p4 ""param no 5"" bin\Param6.exe ""C:\Program Files\Param7\"""" ""I'm param 8'' and I'm still"" ""--AND-P9"" 'P a r a m ""10""' \'p11 p12\ ""Hi I'm""13"" cats …""!:> 14 \""p15";
-        private const string _ComplicatedCommandLineParsed = @"cmd /p1 /p2 --param3 -p4 ""param no 5"" bin\Param6.exe ""C:\Program Files\Param7"""" ""I'm param 8'' and I'm still"" --AND-P9 ""P a r a m ""10"""" 'p11 p12\ ""Hi I'm13 cats …!:>"" 14 ""p15";
+        private const string _ComplicatedCommandLineParsed = @"cmd /p1 /p2 --param3 -p4 ""param no 5"" bin\Param6.exe ""C:\Program Files\Param7\"""" ""I'm param 8'' and I'm still"" --AND-P9 ""P a r a m \""10\"""" \'p11 p12\ ""Hi I'm13 cats …!:>"" 14 \""p15";
         private static readonly CommandLinePart[] _ComplicatedCommandLineParsedParts =
                 {
-                    new CommandLinePart(0, 0 ,"cmd", "cmd"),
-                    new CommandLinePart(1, 4, "/p1", "/p1"),
-                    new CommandLinePart(2, 8, "/p2", "/p2"),
-                    new CommandLinePart(3, 12, "--param3", "--param3"),
-                    new CommandLinePart(4, 21, "-p4", "-p4"),
-                    new CommandLinePart(5, 25, "\"param no 5\"", "param no 5"),
-                    new CommandLinePart(6, 38, "bin\\Param6.exe", "bin\\Param6.exe"),
-                    new CommandLinePart(7, 53, "\"C:\\Program Files\\Param7\\\"\"", "C:\\Program Files\\Param7\""),
-                    new CommandLinePart(8, 81, "\"I'm param 8'' and I'm still\"", "I'm param 8'' and I'm still"),
-                    new CommandLinePart(9, 111, "\"--AND-P9\"", "--AND-P9"),
-                    new CommandLinePart(10, 122, "'P a r a m \"10\"'", "P a r a m \"10\""),
-                    new CommandLinePart(11, 139, "\\'p11", "'p11"),
-                    new CommandLinePart(12, 145, "p12\\", "p12\\"),
-                    new CommandLinePart(13, 150, "\"Hi I'm\"13\" cats …\"!:>", "Hi I'm13 cats …!:>"),
-                    new CommandLinePart(14, 173, "14", "14"),
-                    new CommandLinePart(15, 176, "\\\"p15", "\"p15"),
+                    new CommandLinePart(0, 0 ,"cmd", "cmd", "cmd"),
+                    new CommandLinePart(1, 4, "/p1", "/p1", "/p1"),
+                    new CommandLinePart(2, 8, "/p2", "/p2", "/p2"),
+                    new CommandLinePart(3, 12, "--param3", "--param3", "--param3"),
+                    new CommandLinePart(4, 21, "-p4", "-p4", "-p4"),
+                    new CommandLinePart(5, 25, "\"param no 5\"", "param no 5", "\"param no 5\""),
+                    new CommandLinePart(6, 38, "bin\\Param6.exe", "bin\\Param6.exe", "bin\\Param6.exe"),
+                    new CommandLinePart(7, 53, "\"C:\\Program Files\\Param7\\\"\"", "C:\\Program Files\\Param7\"", "\"C:\\Program Files\\Param7\\\"\""),
+                    new CommandLinePart(8, 81, "\"I'm param 8'' and I'm still\"", "I'm param 8'' and I'm still", "\"I'm param 8'' and I'm still\""),
+                    new CommandLinePart(9, 111, "\"--AND-P9\"", "--AND-P9", "--AND-P9"),
+                    new CommandLinePart(10, 122, "'P a r a m \"10\"'", "P a r a m \"10\"", "\"P a r a m \\\"10\\\"\""),
+                    new CommandLinePart(11, 139, "\\'p11", "'p11", "\\'p11"),
+                    new CommandLinePart(12, 145, "p12\\", "p12\\", "p12\\"),
+                    new CommandLinePart(13, 150, "\"Hi I'm\"13\" cats …\"!:>", "Hi I'm13 cats …!:>", "\"Hi I'm13 cats …!:>\""),
+                    new CommandLinePart(14, 173, "14", "14", "14"),
+                    new CommandLinePart(15, 176, "\\\"p15", "\"p15", "\\\"p15"),
                 };
         
         [Fact]
@@ -36,6 +36,10 @@ namespace Nerven.CommandLineParser.Tests
             Assert.Equal(_ComplicatedCommandLineParsed, _commandLine.Value);
             Assert.False(_commandLine.Equals(_ComplicatedCommandLineOriginal));
             Assert.True(_commandLine.Equals(_ComplicatedCommandLineParsed));
+
+            var _commandLineParseFromValue = _parser.ParseString(_commandLine.Value);
+            Assert.Equal(_commandLine.Value, _commandLineParseFromValue.Value);
+            Assert.True(_commandLineParseFromValue.Equals(_ComplicatedCommandLineParsed));
         }
 
         [Fact]
@@ -56,12 +60,74 @@ namespace Nerven.CommandLineParser.Tests
             {
                 Assert.Equal(_expectedParts[_i].Value, _commandLine.Parts[_i].Value);
                 Assert.Equal(_expectedParts[_i].Original, _commandLine.Parts[_i].Original);
+                Assert.Equal(_expectedParts[_i].EscapedValue, _commandLine.Parts[_i].EscapedValue);
                 Assert.Equal(_expectedParts[_i], _commandLine.Parts[_i]);
                 Assert.Equal(_i, _expectedParts[_i].Index);
                 Assert.Equal(_i, _commandLine.Parts[_i].Index);
                 Assert.Equal(_ComplicatedCommandLineOriginal.IndexOf(_commandLine.Parts[_i].Original, StringComparison.Ordinal), _commandLine.Parts[_i].OriginalStartIndex);
                 Assert.Equal(_expectedParts[_i].OriginalStartIndex, _commandLine.Parts[_i].OriginalStartIndex);
             }
+        }
+
+        [Fact]
+        public void ComplicatedCommandLineCanBeSlicedFromStartToEnd()
+        {
+            var _parser = CommandLineSplitter.Default;
+            var _commandLine = _parser.ParseString(_ComplicatedCommandLineOriginal).Slice(0, 16);
+
+            Assert.Equal(_ComplicatedCommandLineParsed, _commandLine.Value);
+
+            var _commandLineParseFromValue = _parser.ParseString(_commandLine.Value);
+            Assert.Equal(_commandLine.Value, _commandLineParseFromValue.Value);
+        }
+
+        [Fact]
+        public void ComplicatedCommandLineCanBeSlicedToEnd()
+        {
+            var _parser = CommandLineSplitter.Default;
+            var _commandLine = _parser.ParseString(_ComplicatedCommandLineOriginal).Slice(1, 15);
+
+            Assert.Equal(_ComplicatedCommandLineParsed.Substring(4), _commandLine.Value);
+
+            var _commandLineParseFromValue = _parser.ParseString(_commandLine.Value);
+            Assert.Equal(_commandLine.Value, _commandLineParseFromValue.Value);
+        }
+
+        [Fact]
+        public void ComplicatedCommandLineCanBeSlicedFromStart()
+        {
+            var _parser = CommandLineSplitter.Default;
+            var _commandLine = _parser.ParseString(_ComplicatedCommandLineOriginal).Slice(0, 12);
+
+            Assert.Equal(_ComplicatedCommandLineParsed.Substring(0, 144), _commandLine.Value);
+
+            var _commandLineParseFromValue = _parser.ParseString(_commandLine.Value);
+            Assert.Equal(_commandLine.Value, _commandLineParseFromValue.Value);
+        }
+
+        [Fact]
+        public void ComplicatedCommandLineCanBeSlicedInTheMiddle()
+        {
+            var _parser = CommandLineSplitter.Default;
+            var _commandLine = _parser.ParseString(_ComplicatedCommandLineOriginal).Slice(6, 3);
+
+            Assert.Equal(_ComplicatedCommandLineParsed.Substring(38, 72), _commandLine.Value);
+
+            var _commandLineParseFromValue = _parser.ParseString(_commandLine.Value);
+            Assert.Equal(_commandLine.Value, _commandLineParseFromValue.Value);
+        }
+
+        [Fact]
+        public void ComplicatedCommandLineCanBeSlicedAndOriginalIsCorrectlyChanged()
+        {
+            var _parser = CommandLineSplitter.Default;
+            var _commandLine = _parser.ParseString(_parser.ParseString(_ComplicatedCommandLineOriginal).Value).Slice(3, 9);
+
+            Assert.Equal(_ComplicatedCommandLineParsed.Substring(12, 132), _commandLine.Value);
+
+            var _commandLineParseFromValue = _parser.ParseString(_commandLine.Value);
+            Assert.Equal(_commandLine.Value, _commandLineParseFromValue.Value);
+            Assert.Equal(_commandLine.Original, _commandLineParseFromValue.Original);
         }
 
         [Fact]
@@ -90,6 +156,7 @@ var {nameof(commandLine)} = {nameof(CommandLineSplitter)}.{nameof(CommandLineSpl
 var {nameof(args)} = {nameof(commandLine)}.{nameof(CommandLine.GetArgs)}(); // -> [{string.Join(", ", args.Select(_arg => $"\"{_arg}\""))}]";
 
             Assert.Equal(_expected, _actual);
+            Assert.Equal(commandLine.Value, CommandLineSplitter.Default.ParseString(commandLine.Value).Value);
         }
 
         [Theory]

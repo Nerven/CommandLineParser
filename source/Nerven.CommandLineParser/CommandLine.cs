@@ -23,6 +23,11 @@ namespace Nerven.CommandLineParser
 
         public IReadOnlyList<CommandLinePart> Parts { get; }
 
+        public static CommandLine Create(string original, string value, IReadOnlyCollection<CommandLinePart> parts)
+        {
+            return new CommandLine(original, value, parts.ToList());
+        }
+
         public string[] GetArgs() => Parts.Select(_part => _part.Value).ToArray();
 
         public bool Equals(CommandLine other)
@@ -81,6 +86,26 @@ namespace Nerven.CommandLineParser
         public override string ToString()
         {
             return Value;
+        }
+
+        public CommandLine Slice(int startPartIndex, int partCount)
+        {
+            var _copiedParts = Parts.Skip(startPartIndex).Take(partCount).ToList();
+            var _lastPart = _copiedParts[_copiedParts.Count - 1];
+            var _valueStartIndex = startPartIndex == 0
+                ? 0
+                : Parts
+                    .Take(startPartIndex)
+                    .Sum(_part => _part.EscapedValue.Length + 1);
+            var _valueLength = _copiedParts
+                .Sum(_part => _part.EscapedValue.Length) + partCount - 1;
+
+            var _copiedOriginal = Original.Substring(
+                _copiedParts[0].OriginalStartIndex,
+                _lastPart.OriginalStartIndex + _lastPart.Original.Length - _copiedParts[0].OriginalStartIndex);
+            var _copiedValue = Value.Substring(_valueStartIndex, _valueLength);
+
+            return new CommandLine(_copiedOriginal, _copiedValue, _copiedParts);
         }
     }
 }

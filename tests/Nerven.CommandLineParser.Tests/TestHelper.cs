@@ -8,7 +8,8 @@ namespace Nerven.CommandLineParser.Tests
     {
         public static void TestCommandLineParser(ICommandLineParser parser, CommandLineSplitter splitter, string line, CommandLineItem[] expectedItems)
         {
-            var _actualItems = parser.ParseCommandLine(splitter.ParseString(line));
+            var _commandLine = splitter.ParseString(line);
+            var _actualItems = parser.ParseCommandLine(_commandLine);
 
             for (var _i = 0; _i < expectedItems.Length && _i < _actualItems.Count; _i++)
             {
@@ -18,6 +19,8 @@ namespace Nerven.CommandLineParser.Tests
 
             Assert.Equal(expectedItems.Length, _actualItems.Count);
             Assert.True(expectedItems.SequenceEqual(_actualItems));
+
+            Assert.Equal(_commandLine.Value, splitter.ParseString(_commandLine.Value).Value);
         }
 
         public static void CommandLineIsSplittedLikeWin32Does(string line, CommandLineSplitter parser)
@@ -36,6 +39,8 @@ namespace Nerven.CommandLineParser.Tests
                 Assert.Equal(_expectedArgs[_i], _commandLine.Parts[_i].Value);
                 Assert.True(_commandLine.Parts[_i].Equals(_expectedArgs[_i]));
             }
+
+            Assert.Equal(_commandLine.Value, parser.ParseString(_commandLine.Value).Value);
         }
     }
 }
