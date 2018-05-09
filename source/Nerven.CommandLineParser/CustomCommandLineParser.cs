@@ -25,7 +25,7 @@ namespace Nerven.CommandLineParser
             return new CustomCommandLineParser(createHandler);
         }
 
-        public IReadOnlyList<CommandLineItem> ParseCommandLine(CommandLine commandLine)
+        public CommandLineItemCollection ParseCommandLine(CommandLine commandLine)
         {
             if (commandLine.Parts == null)
             {
@@ -48,7 +48,7 @@ namespace Nerven.CommandLineParser
                 }
             }
 
-            return new ReadOnlyCollection<CommandLineItem>(_items);
+            return new CommandLineItemCollection(_items);
         }
 
         public sealed class Context

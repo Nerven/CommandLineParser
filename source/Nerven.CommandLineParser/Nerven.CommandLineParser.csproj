@@ -45,6 +45,8 @@
     <Compile Include="CommandLinePart.cs" />
     <Compile Include="CommandLine.cs" />
     <Compile Include="CommandLineSplitter.cs" />
+    <Compile Include="CommandLineItemCollection.cs" />
+    <Compile Include="Extensions\EnumerableCommandLineItemExtensions.cs" />
     <Compile Include="StandardCommandLineParser.cs" />
     <Compile Include="CustomCommandLineParser.cs" />
     <Compile Include="ICommandLineParser.cs" />
