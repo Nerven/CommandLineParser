@@ -62,17 +62,14 @@ namespace Nerven.CommandLineParser
 
         public override bool Equals(object obj)
         {
-            if (obj is CommandLine)
+            switch (obj)
             {
-                return Equals((CommandLine)obj);
+                case CommandLine _line:
+                    return Equals(_line);
+                case string _string:
+                    return Equals(_string);
             }
 
-            var _string = obj as string;
-            if (_string != null)
-            {
-                return Equals(_string);
-            }
-            
             return false;
         }
 

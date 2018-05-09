@@ -7,20 +7,6 @@ namespace Nerven.CommandLineParser
 {
     public sealed class CommandLineSplitter
     {
-        private static readonly CommandLineSplitter _Default = new CommandLineSplitter(
-            ' ',
-            '"',
-            new[] { ' ', '\t' },
-            new[] { '"', '\'' },
-            new[] { '\\' });
-
-        private static readonly CommandLineSplitter _WindowsCompatible = new CommandLineSplitter(
-            ' ',
-            '"',
-            new[] { ' ', '\t' },
-            new[] { '"' },
-            new[] { '\\' });
-
         private readonly char _DefaultSeparatorCharacter;
         private readonly char _DefaultQuoteCharacter;
         private readonly char[] _SeparatorCharacters;
@@ -41,9 +27,19 @@ namespace Nerven.CommandLineParser
             _EscapeCharacters = escapeCharacters;
         }
 
-        public static CommandLineSplitter Default => _Default;
+        public static CommandLineSplitter Default { get; } = new CommandLineSplitter(
+            ' ',
+            '"',
+            new[] { ' ', '\t' },
+            new[] { '"', '\'' },
+            new[] { '\\' });
 
-        public static CommandLineSplitter WindowsCompatible => _WindowsCompatible;
+        public static CommandLineSplitter WindowsCompatible { get; } = new CommandLineSplitter(
+            ' ',
+            '"',
+            new[] { ' ', '\t' },
+            new[] { '"' },
+            new[] { '\\' });
 
         public static CommandLineSplitter Create(
             char defaultSeparatorCharacter,
@@ -228,8 +224,8 @@ namespace Nerven.CommandLineParser
         {
             public Builder()
             {
-                DefaultSeparatorCharacter = _Default._DefaultSeparatorCharacter;
-                DefaultQuoteCharacter = _Default._DefaultQuoteCharacter;
+                DefaultSeparatorCharacter = Default._DefaultSeparatorCharacter;
+                DefaultQuoteCharacter = Default._DefaultQuoteCharacter;
                 SeparatorCharacters = new List<char>();
                 QuoteCharacters = new List<char>();
                 EscapeCharacters = new List<char>();
@@ -250,9 +246,9 @@ namespace Nerven.CommandLineParser
                 return Create(
                     DefaultSeparatorCharacter,
                     DefaultQuoteCharacter,
-                    SeparatorCharacters?.Count > 0 ? SeparatorCharacters : _Default._SeparatorCharacters.ToList(),
-                    QuoteCharacters?.Count > 0 ? QuoteCharacters : _Default._QuoteCharacters.ToList(),
-                    EscapeCharacters?.Count > 0 ? EscapeCharacters : _Default._EscapeCharacters.ToList());
+                    SeparatorCharacters?.Count > 0 ? SeparatorCharacters : Default._SeparatorCharacters.ToList(),
+                    QuoteCharacters?.Count > 0 ? QuoteCharacters : Default._QuoteCharacters.ToList(),
+                    EscapeCharacters?.Count > 0 ? EscapeCharacters : Default._EscapeCharacters.ToList());
             }
         }
     }
