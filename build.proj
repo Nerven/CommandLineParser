@@ -44,7 +44,7 @@
     <NervenGitVersionTaskGitVersionTaskPath
       Include="$(NervenSolutionDir)\packages\GitVersionTask.*\**\GitVersionTask.dll" />
     <NervenXunitMsbuildRunnerTaskPath
-      Include="$(NervenSolutionDir)\packages\xunit.runner.msbuild.*\build\*\xunit.runner.msbuild.dll" />
+      Include="$(NervenSolutionDir)\packages\xunit.runner.msbuild.*\build\*\xunit.runner.msbuild.*.dll" />
   </ItemGroup>
   <UsingTask
     Condition="Exists('@(NervenGitVersionTaskGitVersionTaskPath)')"

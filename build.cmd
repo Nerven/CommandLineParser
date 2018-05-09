@@ -1,6 +1,9 @@
 @echo off
 setlocal
 
+if not defined NERVENMSBUILDCMD (for /D %%D in ("%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\") do set NERVENMSBUILDCMD=%%~dpD\MSBuild.exe)
+if not defined NERVENMSBUILDCMD (for /D %%D in ("%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\") do set NERVENMSBUILDCMD=%%~dpD\MSBuild.exe)
+if not defined NERVENMSBUILDCMD (for /D %%D in ("%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\") do set NERVENMSBUILDCMD=%%~dpD\MSBuild.exe)
 if not defined NERVENMSBUILDCMD (for /D %%D in ("%ProgramFiles(x86)%\MSBuild\14.0\Bin\") do set NERVENMSBUILDCMD=%%~dpD\MSBuild.exe)
 if not defined NERVENMSBUILDCMD (set NERVENMSBUILDCMD=MSBuild.exe)
 echo Using MSBuild executable: %NERVENMSBUILDCMD%
