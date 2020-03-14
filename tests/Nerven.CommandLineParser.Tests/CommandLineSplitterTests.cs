@@ -130,9 +130,11 @@ namespace Nerven.CommandLineParser.Tests
             Assert.Equal(_commandLine.Original, _commandLineParseFromValue.Original);
         }
 
-        [Fact]
+        [SkippableFact]
         public void ComplicatedCommandLineIsSplittedLikeWin32DoesInWindowsCompatibilityMode()
         {
+            Skip.IfNot(Environment.OSVersion.Platform == PlatformID.Win32NT);
+
             TestHelper.CommandLineIsSplittedLikeWin32Does(_ComplicatedCommandLineOriginal, CommandLineSplitter.WindowsCompatible);
         }
 
@@ -159,7 +161,7 @@ var {nameof(args)} = {nameof(commandLine)}.{nameof(CommandLine.GetArgs)}(); // -
             Assert.Equal(commandLine.Value, CommandLineSplitter.Default.ParseString(commandLine.Value).Value);
         }
 
-        [Theory]
+        [SkippableTheory]
         [InlineData(".")]
         ////[InlineData(@"ntbackup backup \\iggy-multi\c$ /m normal /j ""My Job 1"" /p ""Backup"" /n ""Command Line Backup 1"" /d ""Command Line Functionality"" /v:yes /r:no /l:s /rs:no /hc:on")]
         [InlineData("dir/Q/O:S d*")]
@@ -168,14 +170,18 @@ var {nameof(args)} = {nameof(commandLine)}.{nameof(CommandLine.GetArgs)}(); // -
         ////[InlineData(@"winscp.com /command ""open sftp://martin@example.com/ -hostkey=""""ssh-rsa 2048 xx:xx:xx..."""""" ""exit""")]
         public void TypicalCommandLinesAreHandledLikeWindowsInBothDefaultModeAndCompatibilityMode(string line)
         {
+            Skip.IfNot(Environment.OSVersion.Platform == PlatformID.Win32NT);
+
             TestHelper.CommandLineIsSplittedLikeWin32Does(line, CommandLineSplitter.Default);
             TestHelper.CommandLineIsSplittedLikeWin32Does(line, CommandLineSplitter.WindowsCompatible);
         }
 
-        [Theory]
+        [SkippableTheory]
         [InlineData(@"cvlc -vv --live-caching 2000 --decklink-audio-connection embedded --decklink-aspect-ratio 16:9 --decklink-mode hp50 decklink:// --sout-x264-preset fast --sout-x264-tune film --sout-transcode-threads 24 --no-sout-x264-interlaced --sout-x264-keyint 50 --sout-x264-lookahead 100 --sout-x264-vbv-maxrate 4000 --sout-x264-vbv-bufsize 4000 --sout '#duplicate{dst=""transcode{vcodec=h264,vb=6000,acodec=mp4a,aenc=fdkaac,ab=256}:std{access=udp,mux=ts,dst=192.168.1.2:4013}"", dst=""std{access=udp,mux=ts,dst=192.168.1.2:4014}""}'")]
         public void ApparentlyLessTypicalCommandLinesAreHandledLikeWindowsInCompatibilityMode(string line)
         {
+            Skip.IfNot(Environment.OSVersion.Platform == PlatformID.Win32NT);
+
             TestHelper.CommandLineIsSplittedLikeWin32Does(line, CommandLineSplitter.WindowsCompatible);
         }
     }
