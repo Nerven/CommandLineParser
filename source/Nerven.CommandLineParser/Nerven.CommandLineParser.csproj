@@ -8,6 +8,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>Nerven.CommandLineParser</PackageId>
+    <Description>Command line parsing, either into a simple string array, or a step further into a set of commands, options, flags and arguments (Library, C#/.NET Standard 2.1)</Description>
   </PropertyGroup>
 
   <ItemGroup>

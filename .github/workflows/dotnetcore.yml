@@ -1,12 +1,14 @@
 name: .NET Core
 
-on: [push]
+on:
+  push:
+  release:
+    types:
+      - published
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET Core
@@ -19,9 +21,7 @@ jobs:
       run: dotnet test --configuration Release
 
   build-win:
-
     runs-on: windows-latest
-
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET Core
@@ -32,3 +32,23 @@ jobs:
       run: dotnet build --configuration Release
     - name: Test with dotnet
       run: dotnet test --configuration Release
+
+  deploy:
+    needs: [build, build-win]
+    runs-on: ubuntu-latest
+    if: contains(github.event_name, 'release')
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.102
+    - name: Pack NuGet Package
+      run: dotnet pack --configuration Release -p:Version=${{ github.event.release.name }}
+    - name: Push NuGet Package to GitHub
+      run: dotnet nuget push /source/**/*.nupkg --source "github" --no-symbols true
+    - name: Push NuGet Package to nuget.org
+      run: dotnet nuget push /source/**/*.nupkg
+            --api-key ${{ secrets.NUGET_DEPLOY_KEY }}
+            --source https://api.nuget.org/v3/index.json
+            --no-symbols true
