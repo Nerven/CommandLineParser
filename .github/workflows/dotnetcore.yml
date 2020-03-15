@@ -47,10 +47,8 @@ jobs:
       run: dotnet build --configuration Release
     - name: Pack NuGet Package
       run: dotnet pack --configuration Release -p:Version=${{ github.event.release.name }}
-    - name: Push NuGet Package to GitHub
-      run: dotnet nuget push /source/**/*.nupkg --source "github" --no-symbols true
     - name: Push NuGet Package to nuget.org
-      run: dotnet nuget push /source/**/*.nupkg
+      run: dotnet nuget push ./source/**/*.nupkg
             --api-key ${{ secrets.NUGET_DEPLOY_KEY }}
             --source https://api.nuget.org/v3/index.json
             --no-symbols true
