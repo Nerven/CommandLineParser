@@ -43,6 +43,8 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.102
+    - name: Build with dotnet
+      run: dotnet build --configuration Release
     - name: Pack NuGet Package
       run: dotnet pack --configuration Release -p:Version=${{ github.event.release.name }}
     - name: Push NuGet Package to GitHub
